@@ -279,7 +279,8 @@ export default function App() {
     function onResize() {
       var w = window.innerWidth || 0;
       var h = window.innerHeight || 0;
-      if (w < 1180 || h < 680) setIsSmallScreen(true);
+      /* allow 14" laptops; still block phones */
+      if (w < 1024 || h < 640) setIsSmallScreen(true);
       else setIsSmallScreen(false);
     }
     onResize();
@@ -489,7 +490,7 @@ export default function App() {
 
     /* ✅ Bigger map height (and pan only) */
     mapWrap: {
-      height: 340,
+      height: 380,
       width: "100%",
       background: "white",
     },
@@ -499,6 +500,7 @@ export default function App() {
       gridTemplateColumns: "1fr 1fr",
       gap: 10,
       minHeight: 0,
+      alignItems: "stretch",
     },
 
     infoCard: {
@@ -508,6 +510,8 @@ export default function App() {
       padding: 12,
       boxShadow: "0 4px 14px rgba(11,94,215,0.06)",
       minHeight: 0,
+      overflow: "auto",
+      wordBreak: "break-word",
     },
 
     infoTitle: { fontWeight: 900, color: THEME.blue3, marginBottom: 8 },
@@ -535,6 +539,7 @@ export default function App() {
       padding: 10,
       boxShadow: "0 4px 14px rgba(11,94,215,0.06)",
       minHeight: 0,
+      overflow: "hidden",
     },
     chartTitle: {
       fontWeight: 900,
@@ -601,9 +606,12 @@ export default function App() {
           if (mapRef.current) {
             try {
               mapRef.current.invalidateSize(true);
-              var layer2 = L.geoJSON(j);
-              var b2 = layer2.getBounds();
-              mapRef.current.fitBounds(b2, { padding: [18, 18] });
+              /* keep Afghanistan centered; pan allowed */
+              mapRef.current.setView([34.5, 66.0], 6, { animate: false });
+              if (afgBounds) {
+                mapRef.current.setMaxBounds(afgBounds.pad(0.15));
+                mapRef.current.options.maxBoundsViscosity = 1.0;
+              }
             } catch (e2) {}
           }
         }, 350);
@@ -611,7 +619,7 @@ export default function App() {
       .catch(function (e) {
         setGeoError(String(e && e.message ? e.message : e));
       });
-  }, []);
+  }, [afgBounds]);
 
   /* =========================
      Load MH + all HER files
@@ -1095,7 +1103,7 @@ export default function App() {
           <div style={styles.smallText}>
             Please open on a laptop/desktop.
             <br />
-            Minimum recommended size: <b>1180px width</b>.
+            Minimum recommended size: <b>1024px width</b>.
           </div>
         </div>
       </div>
@@ -1377,13 +1385,13 @@ export default function App() {
                       setTimeout(function () {
                         try {
                           m.invalidateSize(true);
+                          m.setView([34.5, 66.0], 6, { animate: false });
                           if (afgBounds) {
-                            m.fitBounds(afgBounds, { padding: [18, 18] });
                             m.setMaxBounds(afgBounds.pad(0.15));
                             m.options.maxBoundsViscosity = 1.0;
                           }
                         } catch (e2) {}
-                      }, 300);
+                      }, 250);
                     }}
                   >
                     <TileLayer
