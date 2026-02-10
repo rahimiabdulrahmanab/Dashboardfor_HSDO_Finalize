@@ -279,8 +279,16 @@ export default function App() {
     function onResize() {
       var w = window.innerWidth || 0;
       var h = window.innerHeight || 0;
-      /* allow 14" laptops; still block phones */
-      if (w < 1024 || h < 640) setIsSmallScreen(true);
+
+      /* Allow tablets + all laptops/computers, block phones only */
+      var isTouch =
+        "ontouchstart" in window ||
+        (navigator && navigator.maxTouchPoints > 0);
+      var ua = (navigator && navigator.userAgent) || "";
+      var isPhoneUA = /Mobi|iPhone|iPod|Android.*Mobile/i.test(ua);
+
+      /* Phones are usually < 768px width in real viewport */
+      if ((w < 768 || h < 520) && (isTouch || isPhoneUA)) setIsSmallScreen(true);
       else setIsSmallScreen(false);
     }
     onResize();
@@ -490,7 +498,7 @@ export default function App() {
 
     /* ✅ Bigger map height (and pan only) */
     mapWrap: {
-      height: 380,
+      height: 340,
       width: "100%",
       background: "white",
     },
@@ -500,7 +508,6 @@ export default function App() {
       gridTemplateColumns: "1fr 1fr",
       gap: 10,
       minHeight: 0,
-      alignItems: "stretch",
     },
 
     infoCard: {
@@ -510,8 +517,11 @@ export default function App() {
       padding: 12,
       boxShadow: "0 4px 14px rgba(11,94,215,0.06)",
       minHeight: 0,
+
+      /* ✅ keep text inside cards */
       overflow: "auto",
       wordBreak: "break-word",
+      overflowWrap: "anywhere",
     },
 
     infoTitle: { fontWeight: 900, color: THEME.blue3, marginBottom: 8 },
@@ -539,7 +549,6 @@ export default function App() {
       padding: 10,
       boxShadow: "0 4px 14px rgba(11,94,215,0.06)",
       minHeight: 0,
-      overflow: "hidden",
     },
     chartTitle: {
       fontWeight: 900,
@@ -606,12 +615,11 @@ export default function App() {
           if (mapRef.current) {
             try {
               mapRef.current.invalidateSize(true);
-              /* keep Afghanistan centered; pan allowed */
-              mapRef.current.setView([34.5, 66.0], 6, { animate: false });
-              if (afgBounds) {
-                mapRef.current.setMaxBounds(afgBounds.pad(0.15));
-                mapRef.current.options.maxBoundsViscosity = 1.0;
-              }
+              var layer2 = L.geoJSON(j);
+              var b2 = layer2.getBounds();
+
+              /* ✅ center Afghanistan nicely */
+              mapRef.current.fitBounds(b2, { padding: [18, 18] });
             } catch (e2) {}
           }
         }, 350);
@@ -619,7 +627,7 @@ export default function App() {
       .catch(function (e) {
         setGeoError(String(e && e.message ? e.message : e));
       });
-  }, [afgBounds]);
+  }, []);
 
   /* =========================
      Load MH + all HER files
@@ -1103,7 +1111,7 @@ export default function App() {
           <div style={styles.smallText}>
             Please open on a laptop/desktop.
             <br />
-            Minimum recommended size: <b>1024px width</b>.
+            Minimum recommended size: <b>1180px width</b>.
           </div>
         </div>
       </div>
@@ -1354,9 +1362,7 @@ export default function App() {
                 </div>
 
                 {geoError ? (
-                  <div
-                    style={{ padding: 10, color: "#B00020", fontWeight: 900 }}
-                  >
+                  <div style={{ padding: 10, color: "#B00020", fontWeight: 900 }}>
                     Map error: {geoError}
                   </div>
                 ) : null}
@@ -1385,13 +1391,13 @@ export default function App() {
                       setTimeout(function () {
                         try {
                           m.invalidateSize(true);
-                          m.setView([34.5, 66.0], 6, { animate: false });
                           if (afgBounds) {
+                            m.fitBounds(afgBounds, { padding: [18, 18] });
                             m.setMaxBounds(afgBounds.pad(0.15));
                             m.options.maxBoundsViscosity = 1.0;
                           }
                         } catch (e2) {}
-                      }, 250);
+                      }, 300);
                     }}
                   >
                     <TileLayer
@@ -1440,9 +1446,7 @@ export default function App() {
                     <b>Badakhshan province</b> only.
                     <br />
                     <br />
-                    It automatically reads <b>
-                      all uploaded HER Excel files
-                    </b>{" "}
+                    It automatically reads <b>all uploaded HER Excel files</b>{" "}
                     and the <b>MH Excel</b> file, then generates the KPIs and
                     charts.
                   </div>
@@ -1461,8 +1465,7 @@ export default function App() {
                     Province:{" "}
                     <span style={{ color: THEME.blue3 }}>Badakhshan</span>
                     <br />
-                    Dataset:{" "}
-                    <span style={{ color: THEME.blue3 }}>{dataset}</span>
+                    Dataset: <span style={{ color: THEME.blue3 }}>{dataset}</span>
                     <br />
                     Filters:{" "}
                     <span style={{ color: THEME.blue3 }}>
