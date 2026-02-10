@@ -1144,7 +1144,7 @@ export default function App() {
           <div>
             <div style={styles.title}>Badakhshan Public Services Dashboard</div>
             <div style={styles.subtitle}>
-              Uses all Excel sources • Afghanistan map (pan only) • More charts
+              Uses HSDO's Own Data • Afghanistan map (pan only) • More charts
               & statistics
             </div>
           </div>
@@ -1337,7 +1337,7 @@ export default function App() {
             <div style={styles.leftCol}>
               <div style={styles.mapBox}>
                 <div style={styles.mapHeader}>
-                  <span>Afghanistan Map (ADM1) — Badakhshan highlighted</span>
+                  <span>Afghanistan Map — Badakhshan Only</span>
                   <span
                     style={{ fontSize: 12, fontWeight: 900, opacity: 0.95 }}
                   >
